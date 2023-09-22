@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>song list</title>
+    <script src="./js/jquery.min.js"></script>
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/styles.css"/>
+    <link rel="stylesheet" href="./css/font-awesome.css"/>
+    <style>
+        .prev-btn, .next-btn, #md {
+            display: inline-block;
+        }
+
+        textarea {
+            width: 80%;
+            height: 100px;
+            scrollbar-gutter: stable;
+            outline: none;
+            border: none;
+            font-weight: bold;
+        }
+
+        .rotate {
+            animation: rotate 12s linear infinite;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body onload="load()" class="bg-white">
+<main>
+    <section class="container">
+        <div class="title">
+            <h2>鬼泣歌单</h2>
+            <div class="underline"></div>
+        </div>
+        <article class="review">
+            <div id="cont"></div>
+            <div class="button-container">
+                <button class="prev-btn">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+                <div id="md"></div>
+                <button class="next-btn">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+            </div>
+            <button class="random-btn">随机</button>
+        </article>
+    </section>
+</main>
+<script>
+    let prevBtn = document.querySelector(".prev-btn");
+    let nextBtn = document.querySelector(".next-btn");
+    let randomBtn = document.querySelector(".random-btn");
+    let songDiv = $("<div id='so'></div>");
+    let aDiv = $("<div id='ad'></div>");
+    var i = 0;
+    let list;
+
+    function load() {
+        $.ajax({
+            url: "/music/list",
+            type: "post",
+            dataType: "json",
+            success: json => {
+                $("so").remove();
+                $("ad").remove();
+                list = json.data.list;
+                let song = list[i];
+                songDiv.html(`
+                    <div class="img-container">
+                        <img src="images/${song.cover}" id="person-img" alt="" />
+                    </div>
+                    <h4 id="author">歌曲${song.name}</h4>
+                    <p id="job">歌手:${song.singer}</p>
+                     <textarea contenteditable="false" placeholder="${song.lyric}"></textarea>
+                    `)
+                aDiv.html(`
+                         <audio id="ad" class="mid" controls>
+                             <source  src="mp3/${song.path}" type="audio/mpeg" />
+                        </audio>
+                    `)
+                $("#cont").append(songDiv);
+                $("#md").append(aDiv);
+                let audio = document.querySelector('.mid');
+                let img = document.querySelector('.img-container');
+                audio.addEventListener('play', function () {
+                    img.classList.add('rotate')
+                })
+                audio.addEventListener('pause', function () {
+                    img.classList.remove('rotate')
+                })
+            }
+        })
+    }
+
+    prevBtn.onclick = function () {
+        if (i === 0)
+            i = list.length - 1;
+        else
+            --i;
+        load();
+    }
+    nextBtn.onclick = function () {
+        if (i === list.length - 1)
+            i = 0;
+        else
+            ++i;
+        load();
+    }
+    randomBtn.onclick = function () {
+        i = Math.round(Math.random() * (list.length - 1))
+        load();
+    }
+</script>
+</body>
+</html>
